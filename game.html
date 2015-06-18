@@ -5,15 +5,15 @@
   <script>
     var windowSize;
 
-    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    var oscillator = audioCtx.createOscillator();
-    var gainNode = audioCtx.createGain();
+    // var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // var oscillator = audioCtx.createOscillator();
+    // var gainNode = audioCtx.createGain();
 
 
     $(document).ready(function() {
       windowSize = $(window).width()
       console.log(windowSize)
-      console.log(oscillator)
+      // console.log(oscillator)
 
       $(window).resize(function() {
         newWindowSize = $(window).width()
@@ -27,18 +27,35 @@
         windowSize = newWindowSize;
       });
 
-      var maxFreq = 6000;
-      var maxVol = 1;
-
-      var initialFreq = 3000;
-      var initialVol = 0.5;
-      
-      oscillator.type = 'sine'; // sine wave — other values are 'square', 'sawtooth', 'triangle' and 'custom'
-      oscillator.frequency.value = 2500; // value in hertz
-      oscillator.start();
 
 
-      gainNode.gain.value = initialVol;
+      // This is the PCM sample source. You modify this.
+      function myPCMSource() {  
+        return  Math.random() * 2 - 1;  // Generate noise.
+      }
+
+      // The rest is boilerplate that you can copy-paste.
+
+      var audioContext;
+      try {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+      } catch(e) {
+        alert('Web Audio API is not supported in this browser');
+      }
+
+      var bufferSize = 4096;
+      var myPCMProcessingNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
+      console.log(myPCMProcessingNode);
+      myPCMProcessingNode.onaudioprocess = function(e) {
+        var output = e.outputBuffer.getChannelData(0);
+        for (var i = 0; i < bufferSize; i++) {
+           // Generate and copy over PCM samples.
+           output[i] = myPCMSource(); 
+        }
+      }
+      myPCMProcessingNode.connect(audioContext.destination);
+      // myPCMProcessingNode.start(0);
 
     });
 
